@@ -1,0 +1,8 @@
+# Netlify redirects for SPA routing
+# This ensures all routes work properly with client-side routing
+
+# Handle tracking URLs
+/track/* /index.html 200
+
+# Handle all other routes
+/* /index.html 200 
