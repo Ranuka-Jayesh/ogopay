@@ -102,6 +102,7 @@ Create a `netlify.toml` file in your project root:
 ## Important Notes
 
 - **Tracking URLs**: The `VITE_PUBLIC_URL` environment variable is crucial for tracking URLs to work correctly in hosted environments
+- **Tracking Codes**: Each friend now has a unique 4-digit code that must be entered to access their transaction history
 - **HTTPS**: Make sure your hosted domain uses HTTPS for security
 - **CORS**: Ensure your Supabase project allows requests from your hosted domain
 - **SPA Routing**: The `_redirects` file is essential for Netlify to handle client-side routing
@@ -110,9 +111,10 @@ Create a `netlify.toml` file in your project root:
 
 After deployment, test a tracking URL by:
 1. Adding a friend in the admin dashboard
-2. Copying their tracking URL
+2. Copying their tracking URL and 4-digit code
 3. Opening the URL in an incognito/private browser window
-4. Verifying the tracking page loads correctly
+4. Entering the 4-digit code when prompted
+5. Verifying the tracking page loads correctly with transaction history
 
 ## Troubleshooting
 
@@ -126,6 +128,7 @@ After deployment, test a tracking URL by:
 - Ensure the URL doesn't end with a trailing slash
 - Verify the domain is accessible and uses HTTPS
 - Check browser console for any JavaScript errors
+- Make sure the 4-digit tracking code is entered correctly
 
 ### Build Errors
 - Make sure all environment variables are set

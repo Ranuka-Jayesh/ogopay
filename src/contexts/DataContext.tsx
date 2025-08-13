@@ -9,6 +9,7 @@ interface Friend {
   name: string;
   email: string;
   trackingUrl?: string;
+  tracking_code?: string;
   totalBorrowed: number;
   totalRepaid: number;
   remainingBalance: number;
@@ -31,6 +32,7 @@ interface DataContextType {
   deleteFriend: (id: string) => Promise<void>;
   addTransaction: (friendId: string, amount: number, type: 'loan' | 'repayment', description?: string) => Promise<void>;
   getFriendTransactions: (friendId: string) => Transaction[];
+  updateTrackingCode: (friendId: string, newCode: string) => Promise<boolean>;
   refreshData: () => void;
   isLoading: boolean;
 }
@@ -118,6 +120,7 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
       name: friend.full_name,
       email: friend.whatsapp_number,
       trackingUrl: friend.tracking_url,
+      tracking_code: friend.tracking_code,
       totalBorrowed: balances[friend.id.toString()]?.totalBorrowed || 0,
       totalRepaid: balances[friend.id.toString()]?.totalRepaid || 0,
       remainingBalance: balances[friend.id.toString()]?.remainingBalance || 0
@@ -283,6 +286,31 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   };
 
+  const updateTrackingCode = async (friendId: string, newCode: string): Promise<boolean> => {
+    if (!user) {
+      return false;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('friends')
+        .update({ tracking_code: newCode })
+        .eq('id', parseInt(friendId))
+        .eq('admin_id', user.id);
+
+      if (error) {
+        console.error('Error updating tracking code:', error);
+        return false;
+      }
+
+      refreshData();
+      return true;
+    } catch (error) {
+      console.error('Error updating tracking code:', error);
+      return false;
+    }
+  };
+
   return (
     <DataContext.Provider value={{
       friends,
@@ -292,6 +320,7 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
       deleteFriend,
       addTransaction,
       getFriendTransactions,
+      updateTrackingCode,
       refreshData,
       isLoading
     }}>

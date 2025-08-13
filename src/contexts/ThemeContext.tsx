@@ -35,6 +35,11 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   }, [isDark]);
 
   const toggleTheme = () => {
+    // Smooth global theme transition
+    const root = document.documentElement;
+    root.classList.add('theme-transition');
+    // Remove the helper class after the transition window
+    window.setTimeout(() => root.classList.remove('theme-transition'), 700);
     setIsDark(!isDark);
   };
 

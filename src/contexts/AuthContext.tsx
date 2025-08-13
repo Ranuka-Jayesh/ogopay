@@ -12,6 +12,7 @@ interface AuthContextType extends AuthState {
   login: (data: LoginData) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   register: (data: RegisterData) => Promise<{ success: boolean; error?: string }>;
+  updateUser: (updates: Partial<User>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -98,8 +99,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const updateUser = (updates: Partial<User>) => {
+    setAuthState(prev => {
+      if (prev.user) {
+        const updatedUser = { ...prev.user, ...updates };
+        localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+        return { ...prev, user: updatedUser };
+      }
+      return prev;
+    });
+  };
+
   return (
-    <AuthContext.Provider value={{ ...authState, login, logout, register }}>
+    <AuthContext.Provider value={{ ...authState, login, logout, register, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

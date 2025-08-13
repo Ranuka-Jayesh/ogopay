@@ -58,6 +58,7 @@ export interface User {
   whatsapp_number: string;
   profile_photo_url?: string;
   role: string;
+  preferred_currency: string;
   created_at: string;
   updated_at: string;
 }
@@ -70,6 +71,7 @@ export interface Friend {
   is_registered: boolean;
   user_id?: number;
   tracking_url?: string;
+  tracking_code: string;
   created_at: string;
   updated_at: string;
 }

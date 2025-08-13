@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { DataProvider } from './contexts/DataContext';
 import { ThemeProvider } from './contexts/ThemeContext';
@@ -9,6 +9,7 @@ import LandingPage from './components/Shared/LandingPage';
 import BlogPage from './components/Shared/BlogPage';
 import ContactPage from './components/Shared/ContactPage';
 import { TrackingPage } from './components/Shared/TrackingPage';
+import LoadingPage from './components/Shared/LoadingPage';
 import { BrowserRouter as Router, Routes, Route, Navigate, useParams } from 'react-router-dom';
 
 // Tracking page wrapper component
@@ -19,6 +20,21 @@ const TrackingPageWrapper: React.FC = () => {
 
 const AppContent: React.FC = () => {
   const { isAuthenticated, user } = useAuth();
+  const [showLoading, setShowLoading] = useState(true);
+
+  useEffect(() => {
+    // Show loading page for 3 seconds on initial load
+    const timer = setTimeout(() => {
+      setShowLoading(false);
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Show loading page first
+  if (showLoading) {
+    return <LoadingPage onLoadingComplete={() => setShowLoading(false)} />;
+  }
 
   if (!isAuthenticated) {
     return (

@@ -19,6 +19,24 @@ export const RecordTransaction: React.FC<RecordTransactionProps> = ({ onSuccess 
   const { friends, refreshData } = useData();
   const { user } = useAuth();
 
+  // Currency formatting function
+  const formatCurrency = (amount: number) => {
+    const currency = user?.preferred_currency || 'LKR';
+    const currencySymbols: { [key: string]: string } = {
+      'LKR': 'Rs.',
+      'USD': '$',
+      'EUR': '€',
+      'GBP': '£',
+      'INR': '₹',
+      'AUD': 'A$',
+      'CAD': 'C$',
+      'JPY': '¥'
+    };
+    
+    const symbol = currencySymbols[currency] || currency;
+    return `${symbol}${amount.toLocaleString()}`;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -145,7 +163,7 @@ export const RecordTransaction: React.FC<RecordTransactionProps> = ({ onSuccess 
 
         <div>
           <label htmlFor="amount" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Amount ($)
+            Amount ({user?.preferred_currency || 'LKR'})
           </label>
           <input
             type="number"

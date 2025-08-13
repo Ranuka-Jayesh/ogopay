@@ -33,7 +33,13 @@ export const FriendDashboard: React.FC = () => {
   ];
 
   return (
-    <Layout title={`Welcome, ${user?.name}`}>
+    <Layout 
+      title={`Welcome, ${user?.name}`}
+      onLogoClick={() => {
+        // For friend dashboard, just navigate to home (which is the friend dashboard)
+        // This ensures the logo always takes you to the main dashboard view
+      }}
+    >
       <div className="space-y-8">
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { generateTrackingUrl } from '../../utils/trackingUrl';
+import { generateTrackingCode } from '../../utils/codeGenerator';
 import { UserPlus, Check, X, Phone } from 'lucide-react';
 
 interface AddFriendProps {
@@ -28,8 +29,9 @@ export const AddFriend: React.FC<AddFriendProps> = ({ onSuccess }) => {
         return;
       }
 
-      // Generate unique tracking URL
+      // Generate unique tracking URL and code
       const trackingUrl = generateTrackingUrl();
+      const trackingCode = generateTrackingCode();
       
       // Insert friend into database
       const { error } = await supabase
@@ -40,7 +42,8 @@ export const AddFriend: React.FC<AddFriendProps> = ({ onSuccess }) => {
             whatsapp_number: whatsappNumber.trim(),
             admin_id: user.id,
             is_registered: false,
-            tracking_url: trackingUrl
+            tracking_url: trackingUrl,
+            tracking_code: trackingCode
           }
         ])
         .select()
@@ -54,14 +57,14 @@ export const AddFriend: React.FC<AddFriendProps> = ({ onSuccess }) => {
         }
         console.error('Database error:', error);
       } else {
-        setSuccess('Friend added successfully!');
+        setSuccess(`Friend added successfully! Tracking code: ${trackingCode}`);
         setName('');
         setWhatsappNumber('');
         
         // Auto-close modal after a short delay
         setTimeout(() => {
           onSuccess?.();
-        }, 1500);
+        }, 2000);
       }
     } catch (err) {
       setError('An error occurred. Please try again.');

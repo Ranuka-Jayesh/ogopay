@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import Lenis from '@studio-freight/lenis';
 import { motion } from 'framer-motion';
-import { User, LogIn, FileText, BarChart2, Lock, Smartphone, Users, CheckCircle, MessageCircle, ChevronsUp, Sun, Moon, Shield, Ban, AlertTriangle, Mail, ClipboardList, Info, Server, Menu, X } from 'lucide-react';
+import { User, LogIn, FileText, BarChart2, Lock, Smartphone, Users, CheckCircle, MessageCircle, Sun, Moon, Shield, Ban, AlertTriangle, Mail, ClipboardList, Info, Server, Menu, X } from 'lucide-react';
 import { Link as ScrollLink, animateScroll } from 'react-scroll';
 import { AnimatePresence } from 'framer-motion';
 import LoginRegisterModal from './LoginRegisterModal';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import StatsWidget from '../ui/stats-widget';
+import { Chatbot } from './Chatbot';
 
 const steps = [
   { icon: <Users className="h-7 w-7 text-primary-600" />, title: 'Create a Friend Profile', desc: 'Quick setup to begin tracking.' },
@@ -26,12 +27,77 @@ const features = [
 
 const LandingPage: React.FC = () => {
   const [modal, setModal] = useState<null | 'terms' | 'privacy' | 'contact' | 'login' | 'register'>(null);
-  const [showTop, setShowTop] = useState(false);
+  const [showBackToTop, setShowBackToTop] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
+
+
   const { isDark, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // SEO/tab title
+  useEffect(() => {
+    const previousTitle = document.title;
+    const title = 'Ogo Pay — Smart Personal Lending Tracker | Loans, Repayments, PDF Statements';
+    document.title = title;
+
+    const upsertMeta = (name: string, content: string) => {
+      let el = document.querySelector(`meta[name="${name}"]`) as HTMLMetaElement | null;
+      if (!el) {
+        el = document.createElement('meta');
+        el.setAttribute('name', name);
+        document.head.appendChild(el);
+      }
+      el.setAttribute('content', content);
+    };
+
+    upsertMeta('description', 'Ogo Pay helps you track personal lending: record loans & repayments, share secure tracking links, and export professional statements.');
+    upsertMeta('keywords', 'Ogo Pay, personal lending, loan tracker, repayment tracker, statements, ogotechnology, ogopay');
+
+    const upsertOG = (property: string, content: string) => {
+      let el = document.querySelector(`meta[property="${property}"]`) as HTMLMetaElement | null;
+      if (!el) {
+        el = document.createElement('meta');
+        el.setAttribute('property', property);
+        document.head.appendChild(el);
+      }
+      el.setAttribute('content', content);
+    };
+    upsertOG('og:title', title);
+    upsertOG('og:description', 'Track loans and repayments securely with Ogo Pay. Share tracking links and export PDF statements.');
+    upsertOG('og:image', '/logo.jpg');
+
+    // Favicon / apple-touch-icon
+    const upsertLink = (rel: string, href: string) => {
+      let link = document.querySelector(`link[rel="${rel}"]`) as HTMLLinkElement | null;
+      if (!link) {
+        link = document.createElement('link');
+        link.setAttribute('rel', rel);
+        document.head.appendChild(link);
+      }
+      link.setAttribute('href', href);
+    };
+    upsertLink('icon', '/logo.jpg');
+    upsertLink('apple-touch-icon', '/logo.jpg');
+
+    // Twitter
+    const upsertTwitter = (name: string, content: string) => {
+      let el = document.querySelector(`meta[name="${name}"]`) as HTMLMetaElement | null;
+      if (!el) {
+        el = document.createElement('meta');
+        el.setAttribute('name', name);
+        document.head.appendChild(el);
+      }
+      el.setAttribute('content', content);
+    };
+    upsertTwitter('twitter:card', 'summary_large_image');
+    upsertTwitter('twitter:image', '/logo.jpg');
+
+    return () => {
+      document.title = previousTitle;
+    };
+  }, []);
 
   useEffect(() => {
     // Only enable Lenis on desktop
@@ -49,11 +115,16 @@ const LandingPage: React.FC = () => {
       }
       requestAnimationFrame(raf);
     }
+    
     // Show/hide back to top button
-    const onScroll = () => {
-      setShowTop(window.scrollY > 300);
+    const handleScroll = () => {
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+      setShowBackToTop(scrollTop > 300);
     };
-    window.addEventListener('scroll', onScroll);
+    window.addEventListener('scroll', handleScroll);
+    
+
+    
     // Listen for cross-page modal open
     const onOpenAuthModal = (e: any) => {
       if (e.detail === 'login' || e.detail === 'register') {
@@ -63,20 +134,21 @@ const LandingPage: React.FC = () => {
     };
     window.addEventListener('open-auth-modal', onOpenAuthModal);
     return () => {
-      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('open-auth-modal', onOpenAuthModal);
+
       if (lenis) lenis.destroy();
     };
   }, []);
 
+
+
+  // Smooth scroll to top function
   const scrollToTop = () => {
-    // Try to use Lenis if available
-    const anyWindow = window as any;
-    if (anyWindow.lenis) {
-      anyWindow.lenis.scrollTo(0, { duration: 1.2 });
-    } else {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
   };
 
   const closeModal = () => setModal(null);
@@ -87,9 +159,12 @@ const LandingPage: React.FC = () => {
     setModal(mode);
   };
 
+
+
+
   return (
     <div className="bg-gradient-to-br from-primary-50 to-emerald-100 dark:from-secondary-900 dark:to-secondary-800 min-h-screen flex flex-col transition-all duration-500">
-      {/* Next-level Header */}
+        {/* Next-level Header */}
       <motion.header
         initial={{ y: -40, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -249,6 +324,7 @@ const LandingPage: React.FC = () => {
               <li><ScrollLink to="how" smooth={true} duration={600} offset={-80} className="cursor-pointer hover:text-primary-400 transition-colors">How it Works</ScrollLink></li>
               <li><ScrollLink to="features" smooth={true} duration={600} offset={-80} className="cursor-pointer hover:text-primary-400 transition-colors">Features</ScrollLink></li>
               <li><ScrollLink to="why" smooth={true} duration={600} offset={-80} className="cursor-pointer hover:text-primary-400 transition-colors">Why Ogo Pay</ScrollLink></li>
+              <li><button onClick={() => navigate('/blog')} className="cursor-pointer hover:text-primary-400 transition-colors bg-transparent p-0 text-left">Blog</button></li>
               <li><button onClick={() => navigate('/contact')} className="cursor-pointer hover:text-primary-400 transition-colors bg-transparent p-0 text-left">Contact</button></li>
             </ul>
           </div>
@@ -256,8 +332,8 @@ const LandingPage: React.FC = () => {
           <div>
             <h4 className="font-semibold text-primary-300 mb-3">Contact</h4>
             <ul className="text-sm flex flex-col gap-2">
-              <li className="flex items-center gap-2"><MessageCircle className="h-4 w-4 text-primary-400" /> support@ogopay.com</li>
-              <li className="flex items-center gap-2"><Smartphone className="h-4 w-4 text-primary-400" /> +1 234 567 8901</li>
+              <li className="flex items-center gap-2"><MessageCircle className="h-4 w-4 text-primary-400" /> ogopay@ogotechnology.net</li>
+              <li className="flex items-center gap-2"><Smartphone className="h-4 w-4 text-primary-400" /> +94 75 930 7059</li>
             </ul>
           </div>
           {/* Newsletter Signup */}
@@ -273,9 +349,31 @@ const LandingPage: React.FC = () => {
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 mt-10 pt-6 border-t border-secondary-800">
           <div className="text-xs text-gray-400">© 2025 <a href="https://ogotechnology.net" target="_blank" rel="noopener noreferrer" className="text-primary-500 hover:text-primary-600 no-underline font-semibold">Ogo Technology</a>. All rights reserved.</div>
           <div className="flex gap-4 text-lg">
-            <a href="#" aria-label="Twitter" className="hover:text-primary-400 transition-transform transform hover:scale-110"><svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M22.46 6c-.77.35-1.6.58-2.47.69a4.3 4.3 0 0 0 1.88-2.37 8.59 8.59 0 0 1-2.72 1.04A4.28 4.28 0 0 0 16.11 4c-2.37 0-4.29 1.92-4.29 4.29 0 .34.04.67.11.99C7.69 8.99 4.07 7.13 1.64 4.15c-.37.64-.58 1.38-.58 2.17 0 1.5.76 2.82 1.92 3.6-.7-.02-1.36-.21-1.94-.53v.05c0 2.1 1.5 3.85 3.5 4.25-.36.1-.74.16-1.13.16-.28 0-.54-.03-.8-.08.54 1.7 2.1 2.94 3.95 2.97A8.6 8.6 0 0 1 2 19.54c-.29 0-.57-.02-.85-.05A12.13 12.13 0 0 0 8.29 21.5c7.55 0 11.68-6.26 11.68-11.68 0-.18-.01-.36-.02-.54A8.18 8.18 0 0 0 22.46 6z" /></svg></a>
-            <a href="#" aria-label="Facebook" className="hover:text-primary-400 transition-transform transform hover:scale-110"><svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M22.675 0h-21.35C.595 0 0 .592 0 1.326v21.348C0 23.408.595 24 1.325 24h11.495v-9.294H9.692v-3.622h3.128V8.413c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.463.099 2.797.143v3.24l-1.918.001c-1.504 0-1.797.715-1.797 1.763v2.313h3.587l-.467 3.622h-3.12V24h6.116c.73 0 1.324-.592 1.324-1.326V1.326C24 .592 23.405 0 22.675 0" /></svg></a>
-            <a href="#" aria-label="Mail" className="hover:text-primary-400 transition-transform transform hover:scale-110"><MessageCircle className="h-5 w-5" /></a>
+            <a href="https://www.instagram.com/ogotechnology/" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="hover:text-primary-400 transition-transform transform hover:scale-110">
+              <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+              </svg>
+            </a>
+            <a href="https://web.facebook.com/people/ogo-technology/61577853584341/?rdid=pHP2MbuImuP0VgF7&share_url=https://web.facebook.com/share/19FN4eNbcN/?_rdc=1&_rdr" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="hover:text-primary-400 transition-transform transform hover:scale-110">
+              <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M22.675 0h-21.35C.595 0 0 .592 0 1.326v21.348C0 23.408.595 24 1.325 24h11.495v-9.294H9.692v-3.622h3.128V8.413c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.463.099 2.797.143v3.24l-1.918.001c-1.504 0-1.797.715-1.797 1.763v2.313h3.587l-.467 3.622h-3.12V24h6.116c.73 0 1.324-.592 1.324-1.326V1.326C24 .592 23.405 0 22.675 0"/>
+              </svg>
+            </a>
+            <a href="#" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="hover:text-primary-400 transition-transform transform hover:scale-110">
+              <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+              </svg>
+            </a>
+            <a href="#" target="_blank" rel="noopener noreferrer" aria-label="TikTok" className="hover:text-primary-400 transition-transform transform hover:scale-110">
+              <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/>
+              </svg>
+            </a>
+            <a href="https://www.pinterest.com/ogo_technology/" target="_blank" rel="noopener noreferrer" aria-label="Pinterest" className="hover:text-primary-400 transition-transform transform hover:scale-110">
+              <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.174-.105-.949-.199-2.403.041-3.439.219-.937 1.406-5.957 1.406-5.957s-.359-.72-.359-1.781c0-1.663.967-2.911 2.168-2.911 1.024 0 1.518.769 1.518 1.688 0 1.029-.653 2.567-.992 3.992-.285 1.193.6 2.165 1.775 2.165 2.128 0 3.768-2.245 3.768-5.487 0-2.861-2.063-4.869-5.008-4.869-3.41 0-5.409 2.562-5.409 5.199 0 1.033.394 2.143.889 2.741.099.12.112.225.085.345-.09.375-.293 1.199-.334 1.363-.053.225-.172.271-.402.165-1.495-.69-2.433-2.878-2.433-4.646 0-3.776 2.748-7.252 7.92-7.252 4.158 0 7.392 2.967 7.392 6.923 0 4.135-2.607 7.462-6.233 7.462-1.214 0-2.357-.629-2.746-1.378l-.748 2.853c-.271 1.043-1.002 2.35-1.492 3.146C9.57 23.812 10.763 24.009 12.017 24.009c6.624 0 11.99-5.367 11.99-11.988C24.007 5.367 18.641.001 12.017.001z"/>
+              </svg>
+            </a>
           </div>
           <div className="flex gap-4 text-xs">
             <button onClick={() => setModal('terms')} className="hover:underline focus:outline-none">Terms</button>
@@ -380,25 +478,88 @@ const LandingPage: React.FC = () => {
         open={modal === 'login' || modal === 'register'}
         mode={authMode}
         onClose={() => setModal(null)}
-        onSwitchMode={m => { setAuthMode(m); setModal(m); }}
+                onSwitchMode={m => { setAuthMode(m); setModal(m); }}
       />
+
       {/* Back to Top Button */}
       <AnimatePresence>
-        {showTop && (
+        {showBackToTop && (
           <motion.button
-            key="back-to-top"
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 40 }}
-            transition={{ duration: 0.3 }}
+            initial={{ opacity: 0, scale: 0, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0, y: 20 }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
             onClick={scrollToTop}
-            aria-label="Back to top"
-            className="fixed bottom-6 right-6 z-40 bg-primary-600 hover:bg-primary-700 text-white p-3 rounded-full shadow-lg border-2 border-primary-200 dark:border-secondary-700 transition-all focus:outline-none focus:ring-2 focus:ring-primary-400"
+            className="fixed bottom-6 right-6 z-40 w-14 h-14 bg-green-600 dark:bg-green-500 text-white rounded-full shadow-2xl hover:shadow-3xl transition-all duration-300 group"
+            whileHover={{ 
+              scale: 1.1, 
+              y: -3,
+              rotate: [0, -10, 10, 0]
+            }}
+            whileTap={{ scale: 0.9 }}
           >
-            <ChevronsUp className="h-6 w-6" />
+            <div className="relative flex items-center justify-center w-full h-full">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
+              </svg>
+              
+              {/* Perfect Circle Glow Effect */}
+              <motion.div
+                animate={{
+                  scale: [1, 1.2, 1],
+                  opacity: [0.2, 0.4, 0.2],
+                }}
+                transition={{
+                  duration: 2.5,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+                className="absolute inset-0 rounded-full bg-green-400/30 blur-sm"
+              />
+              
+              {/* Perfect Circle Pulse Ring */}
+              <motion.div
+                animate={{
+                  scale: [1, 1.3, 1],
+                  opacity: [0.3, 0, 0.3],
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+                className="absolute inset-0 rounded-full border border-green-400/50"
+              />
+              
+              {/* Additional Perfect Circle Ring */}
+              <motion.div
+                animate={{
+                  scale: [1, 1.5, 1],
+                  opacity: [0.2, 0, 0.2],
+                }}
+                transition={{
+                  duration: 2.5,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                  delay: 0.5
+                }}
+                className="absolute inset-0 rounded-full border border-green-400/30"
+              />
+            </div>
+            
+            {/* Tooltip */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              whileHover={{ opacity: 1, y: 0 }}
+              className="absolute bottom-full right-0 mb-2 px-3 py-1 bg-gray-900 dark:bg-gray-700 text-white text-xs rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+            >
+              Back to Top
+              <div className="absolute top-full right-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900 dark:border-t-gray-700"></div>
+            </motion.div>
           </motion.button>
         )}
       </AnimatePresence>
+
       {/* Mobile Sidebar */}
       <AnimatePresence>
         {sidebarOpen && (
@@ -443,6 +604,15 @@ const LandingPage: React.FC = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
+
+
+      {/* Chatbot Component */}
+      <Chatbot 
+        showFloatingButton={true}
+        position="bottom-left"
+        customMessage="Need help with Ogo Pay? I'm here to assist you!"
+      />
     </div>
   );
 };

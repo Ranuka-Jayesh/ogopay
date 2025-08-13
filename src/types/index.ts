@@ -19,7 +19,9 @@ export interface Friend {
   id: string;
   name: string;
   email: string;
+  whatsapp_number?: string;
   trackingUrl?: string;
+  tracking_code?: string;
   totalBorrowed: number;
   totalRepaid: number;
   remainingBalance: number;

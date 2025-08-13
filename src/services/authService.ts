@@ -7,6 +7,7 @@ export interface RegisterData {
   full_name: string;
   whatsapp_number: string;
   profile_photo?: File;
+  preferred_currency?: string;
 }
 
 export interface LoginData {
@@ -51,6 +52,7 @@ export class AuthService {
           full_name: data.full_name,
           whatsapp_number: data.whatsapp_number,
           profile_photo_url,
+          preferred_currency: data.preferred_currency || 'LKR',
           role: 'admin'
         })
         .select()

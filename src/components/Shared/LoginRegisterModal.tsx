@@ -253,8 +253,6 @@ const LoginRegisterModal: React.FC<LoginRegisterModalProps> = ({ open, mode, onC
   const [name, setName] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [, setWhatsapp] = useState('');
-  const [profilePhoto, setProfilePhoto] = useState<File | null>(null);
-  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
   // Validation states
   const [emailValid, setEmailValid] = useState<boolean | null>(null);
@@ -281,66 +279,63 @@ const LoginRegisterModal: React.FC<LoginRegisterModalProps> = ({ open, mode, onC
     };
   }>({ type: 'error', title: '', message: '' });
 
-  // Country data for code, flag, and phone length
+  // Country data for code, flag, phone length, and currency
   const COUNTRY_DATA = [
-    { code: '+94', flag: 'lk', name: 'Sri Lanka', digits: 9 },
-    { code: '+91', flag: 'in', name: 'India', digits: 10 },
-    { code: '+1', flag: 'us', name: 'United States', digits: 10 },
-    { code: '+44', flag: 'gb', name: 'United Kingdom', digits: 10 },
-    { code: '+61', flag: 'au', name: 'Australia', digits: 9 },
-    { code: '+81', flag: 'jp', name: 'Japan', digits: 10 },
-    { code: '+49', flag: 'de', name: 'Germany', digits: 11 },
-    { code: '+33', flag: 'fr', name: 'France', digits: 9 },
-    { code: '+7', flag: 'ru', name: 'Russia', digits: 10 },
-    { code: '+34', flag: 'es', name: 'Spain', digits: 9 },
-    { code: '+39', flag: 'it', name: 'Italy', digits: 10 },
-    { code: '+86', flag: 'cn', name: 'China', digits: 11 },
-    { code: '+971', flag: 'ae', name: 'UAE', digits: 9 },
-    { code: '+880', flag: 'bd', name: 'Bangladesh', digits: 10 },
-    { code: '+92', flag: 'pk', name: 'Pakistan', digits: 10 },
-    { code: '+966', flag: 'sa', name: 'Saudi Arabia', digits: 9 },
-    { code: '+20', flag: 'eg', name: 'Egypt', digits: 10 },
-    { code: '+234', flag: 'ng', name: 'Nigeria', digits: 10 },
-    { code: '+27', flag: 'za', name: 'South Africa', digits: 9 },
-    { code: '+62', flag: 'id', name: 'Indonesia', digits: 10 },
-    { code: '+63', flag: 'ph', name: 'Philippines', digits: 10 },
-    { code: '+55', flag: 'br', name: 'Brazil', digits: 11 },
-    { code: '+82', flag: 'kr', name: 'South Korea', digits: 10 },
-    { code: '+972', flag: 'il', name: 'Israel', digits: 9 },
-    { code: '+90', flag: 'tr', name: 'Turkey', digits: 10 },
-    { code: '+48', flag: 'pl', name: 'Poland', digits: 9 },
-    { code: '+380', flag: 'ua', name: 'Ukraine', digits: 9 },
-    { code: '+351', flag: 'pt', name: 'Portugal', digits: 9 },
-    { code: '+358', flag: 'fi', name: 'Finland', digits: 9 },
-    { code: '+46', flag: 'se', name: 'Sweden', digits: 9 },
-    { code: '+31', flag: 'nl', name: 'Netherlands', digits: 9 },
-    { code: '+32', flag: 'be', name: 'Belgium', digits: 9 },
-    { code: '+47', flag: 'no', name: 'Norway', digits: 8 },
-    { code: '+420', flag: 'cz', name: 'Czechia', digits: 9 },
-    { code: '+36', flag: 'hu', name: 'Hungary', digits: 9 },
-    { code: '+43', flag: 'at', name: 'Austria', digits: 10 },
-    { code: '+41', flag: 'ch', name: 'Switzerland', digits: 9 },
-    { code: '+65', flag: 'sg', name: 'Singapore', digits: 8 },
-    { code: '+66', flag: 'th', name: 'Thailand', digits: 9 },
-    { code: '+60', flag: 'my', name: 'Malaysia', digits: 9 },
-    { code: '+64', flag: 'nz', name: 'New Zealand', digits: 9 },
-    { code: '+998', flag: 'uz', name: 'Uzbekistan', digits: 9 },
-    { code: '+84', flag: 'vn', name: 'Vietnam', digits: 9 },
-    { code: '+855', flag: 'kh', name: 'Cambodia', digits: 9 },
-    { code: '+856', flag: 'la', name: 'Laos', digits: 9 },
-    { code: '+95', flag: 'mm', name: 'Myanmar', digits: 9 },
+    { code: '+94', flag: 'lk', name: 'Sri Lanka', digits: 9, currency: 'LKR' },
+    { code: '+91', flag: 'in', name: 'India', digits: 10, currency: 'INR' },
+    { code: '+1', flag: 'us', name: 'United States', digits: 10, currency: 'USD' },
+    { code: '+44', flag: 'gb', name: 'United Kingdom', digits: 10, currency: 'GBP' },
+    { code: '+61', flag: 'au', name: 'Australia', digits: 9, currency: 'AUD' },
+    { code: '+81', flag: 'jp', name: 'Japan', digits: 10, currency: 'JPY' },
+    { code: '+49', flag: 'de', name: 'Germany', digits: 11, currency: 'EUR' },
+    { code: '+33', flag: 'fr', name: 'France', digits: 9, currency: 'EUR' },
+    { code: '+7', flag: 'ru', name: 'Russia', digits: 10, currency: 'RUB' },
+    { code: '+34', flag: 'es', name: 'Spain', digits: 9, currency: 'EUR' },
+    { code: '+39', flag: 'it', name: 'Italy', digits: 10, currency: 'EUR' },
+    { code: '+86', flag: 'cn', name: 'China', digits: 11, currency: 'CNY' },
+    { code: '+971', flag: 'ae', name: 'UAE', digits: 9, currency: 'AED' },
+    { code: '+880', flag: 'bd', name: 'Bangladesh', digits: 10, currency: 'BDT' },
+    { code: '+92', flag: 'pk', name: 'Pakistan', digits: 10, currency: 'PKR' },
+    { code: '+966', flag: 'sa', name: 'Saudi Arabia', digits: 9, currency: 'SAR' },
+    { code: '+20', flag: 'eg', name: 'Egypt', digits: 10, currency: 'EGP' },
+    { code: '+234', flag: 'ng', name: 'Nigeria', digits: 10, currency: 'NGN' },
+    { code: '+27', flag: 'za', name: 'South Africa', digits: 9, currency: 'ZAR' },
+    { code: '+62', flag: 'id', name: 'Indonesia', digits: 10, currency: 'IDR' },
+    { code: '+63', flag: 'ph', name: 'Philippines', digits: 10, currency: 'PHP' },
+    { code: '+55', flag: 'br', name: 'Brazil', digits: 11, currency: 'BRL' },
+    { code: '+82', flag: 'kr', name: 'South Korea', digits: 10, currency: 'KRW' },
+    { code: '+972', flag: 'il', name: 'Israel', digits: 9, currency: 'ILS' },
+    { code: '+90', flag: 'tr', name: 'Turkey', digits: 10, currency: 'TRY' },
+    { code: '+48', flag: 'pl', name: 'Poland', digits: 9, currency: 'PLN' },
+    { code: '+380', flag: 'ua', name: 'Ukraine', digits: 9, currency: 'UAH' },
+    { code: '+351', flag: 'pt', name: 'Portugal', digits: 9, currency: 'EUR' },
+    { code: '+358', flag: 'fi', name: 'Finland', digits: 9, currency: 'EUR' },
+    { code: '+46', flag: 'se', name: 'Sweden', digits: 9, currency: 'SEK' },
+    { code: '+31', flag: 'nl', name: 'Netherlands', digits: 9, currency: 'EUR' },
+    { code: '+32', flag: 'be', name: 'Belgium', digits: 9, currency: 'EUR' },
+    { code: '+47', flag: 'no', name: 'Norway', digits: 8, currency: 'NOK' },
+    { code: '+420', flag: 'cz', name: 'Czechia', digits: 9, currency: 'CZK' },
+    { code: '+36', flag: 'hu', name: 'Hungary', digits: 9, currency: 'HUF' },
+    { code: '+43', flag: 'at', name: 'Austria', digits: 10, currency: 'EUR' },
+    { code: '+41', flag: 'ch', name: 'Switzerland', digits: 9, currency: 'CHF' },
+    { code: '+65', flag: 'sg', name: 'Singapore', digits: 8, currency: 'SGD' },
+    { code: '+66', flag: 'th', name: 'Thailand', digits: 9, currency: 'THB' },
+    { code: '+60', flag: 'my', name: 'Malaysia', digits: 9, currency: 'MYR' },
+    { code: '+64', flag: 'nz', name: 'New Zealand', digits: 9, currency: 'NZD' },
+    { code: '+998', flag: 'uz', name: 'Uzbekistan', digits: 9, currency: 'UZS' },
+    { code: '+84', flag: 'vn', name: 'Vietnam', digits: 9, currency: 'VND' },
+    { code: '+855', flag: 'kh', name: 'Cambodia', digits: 9, currency: 'KHR' },
+    { code: '+856', flag: 'la', name: 'Laos', digits: 9, currency: 'LAK' },
+    { code: '+95', flag: 'mm', name: 'Myanmar', digits: 9, currency: 'MMK' },
   ];
 
   const [countryCode, setCountryCode] = useState('+94');
   const [phone, setPhone] = useState('');
 
-  // Handle profile photo upload
-  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setProfilePhoto(file);
-      setPhotoPreview(URL.createObjectURL(file));
-    }
+  // Helper function to get currency based on country code
+  const getCurrencyByCountryCode = (code: string): string => {
+    const country = COUNTRY_DATA.find(c => c.code === code);
+    return country?.currency || 'LKR'; // Default to LKR if not found
   };
 
   const modalRef = useRef<HTMLDivElement>(null);
@@ -408,8 +403,6 @@ const LoginRegisterModal: React.FC<LoginRegisterModalProps> = ({ open, mode, onC
       setName('');
       setConfirmPassword('');
       setWhatsapp('');
-      setProfilePhoto(null);
-      setPhotoPreview(null);
       setCountryCode('+94');
       setPhone('');
       // Reset validation states
@@ -496,7 +489,7 @@ const LoginRegisterModal: React.FC<LoginRegisterModalProps> = ({ open, mode, onC
                     password,
                     full_name: name,
                     whatsapp_number: whatsappNumber,
-                    profile_photo: profilePhoto || undefined
+                    preferred_currency: getCurrencyByCountryCode(countryCode)
                   });
 
                   if (result.success) {
@@ -540,7 +533,7 @@ const LoginRegisterModal: React.FC<LoginRegisterModalProps> = ({ open, mode, onC
           password,
           full_name: name,
           whatsapp_number: whatsappNumber,
-          profile_photo: profilePhoto || undefined
+          preferred_currency: getCurrencyByCountryCode(countryCode)
         });
 
         if (result.success) {
@@ -610,27 +603,6 @@ const LoginRegisterModal: React.FC<LoginRegisterModalProps> = ({ open, mode, onC
                 {mode === 'login' ? 'Sign In to Ogo Pay' : 'Create Your Account'}
               </h2>
               <form onSubmit={handleSubmit} className="w-full flex flex-col gap-4 mt-2">
-                {mode === 'register' && (
-                  <div className="flex flex-col items-center gap-2 mb-2">
-                    <label htmlFor="profilePhoto" className="cursor-pointer block">
-                      {photoPreview ? (
-                        <img src={photoPreview} alt="Profile Preview" className="w-16 h-16 rounded-full object-cover border-2 border-primary-200 dark:border-primary-900 shadow transition-all" />
-                      ) : (
-                        <div className="w-16 h-16 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center border-2 border-primary-200 dark:border-primary-900 shadow">
-                          <span className="text-primary-400 text-lg">+</span>
-                        </div>
-                      )}
-                      <input
-                        id="profilePhoto"
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={handlePhotoChange}
-                      />
-                    </label>
-                    <span className="text-xs text-gray-500 dark:text-gray-400">Profile Photo</span>
-                  </div>
-                )}
                 {mode === 'register' && (
                   <div className="relative">
                     <input

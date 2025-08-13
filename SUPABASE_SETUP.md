@@ -40,6 +40,8 @@
 2. Copy and paste the entire content from `DB/db.sql`
 3. Click "Run" to execute the SQL
 
+**Note**: If you have an existing database, you may need to run the migration script `DB/migration_add_tracking_code.sql` to add the tracking code column.
+
 ## Step 5: Create Storage Bucket
 
 1. In Supabase dashboard, go to **Storage**

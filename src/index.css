@@ -1,3 +1,26 @@
+@import url('https://fonts.googleapis.com/css2?family=Playwrite+Australia+QLD:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Smooth theme transitions */
+.theme-transition *, .theme-transition {
+  transition-property: color, background-color, border-color, box-shadow, fill, stroke;
+  transition-duration: 600ms;
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Hide horizontal scrollbar for quick actions row (Chatbot) */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+/* Custom font class for Playwrite Australia QLD */
+.font-playwrite-australia-qld {
+  font-family: 'Playwrite Australia QLD', cursive;
+}

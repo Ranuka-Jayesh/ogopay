@@ -2,13 +2,15 @@ import React, { useState, useEffect, createContext, useContext } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Layout } from '../Shared/Layout';
 import { useData } from '../../contexts/DataContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { AddFriend } from './AddFriend';
 import { RecordTransaction } from './RecordTransaction';
 import { FriendProfile } from './FriendProfile';
+import { ViewAllFriends } from './ViewAllFriends';
 import { Friend } from '../../types';
-import { Users, Plus, TrendingUp, DollarSign, ArrowUpCircle, ArrowDownCircle, Edit, Trash2, Link, Copy, RefreshCw } from 'lucide-react';
+import { Users, Plus, TrendingUp, DollarSign, ArrowUpCircle, ArrowDownCircle, Edit, Trash2, RefreshCw } from 'lucide-react';
+import { Chatbot } from '../Shared/Chatbot';
 import Lenis from '@studio-freight/lenis';
-import { getBaseUrl } from '../../config/environment';
 
 // Create a context for modal management
 interface ModalContextType {
@@ -67,52 +69,7 @@ const FriendAvatar = ({ name }: { name: string }) => {
   );
 };
 
-// Tracking URL component
-const TrackingUrlDisplay = ({ trackingUrl }: { trackingUrl?: string }) => {
-  const [copied, setCopied] = useState(false);
-  const fullUrl = trackingUrl ? `${getBaseUrl()}/track/${trackingUrl}` : '';
 
-  const handleCopy = async () => {
-    if (fullUrl) {
-      try {
-        await navigator.clipboard.writeText(fullUrl);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      } catch (err) {
-        console.error('Failed to copy URL:', err);
-      }
-    }
-  };
-
-  if (!trackingUrl) {
-    return (
-      <div className="text-xs text-gray-400 dark:text-gray-500">
-        No tracking URL
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex items-center gap-2">
-      <Link className="h-3 w-3 text-gray-400" />
-      <span className="text-xs text-gray-600 dark:text-gray-400 font-mono">
-        {trackingUrl.slice(0, 8)}...
-      </span>
-      <button
-        onClick={handleCopy}
-        className="p-1 text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
-        title="Copy tracking URL"
-      >
-        <Copy className="h-3 w-3" />
-      </button>
-      {copied && (
-        <span className="text-xs text-green-600 dark:text-green-400">
-          Copied!
-        </span>
-      )}
-    </div>
-  );
-};
 
 // DeleteConfirmationModal component
 const DeleteConfirmationModal = ({ 
@@ -354,12 +311,21 @@ const DashboardModal = ({ open, onClose, title, children }: { open: boolean, onC
 
 export const AdminDashboard: React.FC = () => {
   const { friends, transactions, editFriend, deleteFriend, refreshData, isLoading } = useData();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'overview' | 'add-friend' | 'record-transaction'>('overview');
   const [selectedFriend, setSelectedFriend] = useState<Friend | null>(null);
+  const [showViewAllFriends, setShowViewAllFriends] = useState(false);
   const [modal, setModal] = useState<null | 'add-friend' | 'record-transaction'>(null);
   const [editingFriend, setEditingFriend] = useState<Friend | null>(null);
   const [deletingFriend, setDeletingFriend] = useState<Friend | null>(null);
   const [refreshSuccess, setRefreshSuccess] = useState(false);
+
+  // Tab title
+  useEffect(() => {
+    const prev = document.title;
+    document.title = 'Ogo Pay — Smart Personal Lending Tracker | Loans, Repayments, PDF Statements';
+    return () => { document.title = prev; };
+  }, []);
 
   // Create modal context value
   const modalContextValue: ModalContextType = {
@@ -381,6 +347,24 @@ export const AdminDashboard: React.FC = () => {
 
   const totalOutstanding = totalLent - totalRepaid;
 
+  // Currency formatting function
+  const formatCurrency = (amount: number) => {
+    const currency = user?.preferred_currency || 'LKR';
+    const currencySymbols: { [key: string]: string } = {
+      'LKR': 'Rs.',
+      'USD': '$',
+      'EUR': '€',
+      'GBP': '£',
+      'INR': '₹',
+      'AUD': 'A$',
+      'CAD': 'C$',
+      'JPY': '¥'
+    };
+    
+    const symbol = currencySymbols[currency] || currency;
+    return `${symbol}${amount.toLocaleString()}`;
+  };
+
   const stats = [
     {
       title: 'Total Friends',
@@ -390,19 +374,19 @@ export const AdminDashboard: React.FC = () => {
     },
     {
       title: 'Total Lent',
-      value: `$${totalLent.toLocaleString()}`,
+      value: formatCurrency(totalLent),
       icon: ArrowUpCircle,
       color: 'bg-green-500'
     },
     {
       title: 'Total Repaid',
-      value: `$${totalRepaid.toLocaleString()}`,
+      value: formatCurrency(totalRepaid),
       icon: ArrowDownCircle,
       color: 'bg-amber-500'
     },
     {
       title: 'Outstanding',
-      value: `$${totalOutstanding.toLocaleString()}`,
+      value: formatCurrency(totalOutstanding),
       icon: DollarSign,
       color: 'bg-red-500'
     }
@@ -433,6 +417,93 @@ export const AdminDashboard: React.FC = () => {
     };
   }, []);
 
+  // If showing view all friends
+  if (showViewAllFriends) {
+    return (
+      <ModalContext.Provider value={modalContextValue}>
+        <Layout 
+          title="View All Friends"
+          showAdminActions
+          onViewAllFriends={() => setShowViewAllFriends(true)}
+          onAddFriend={() => setModal('add-friend')}
+          onRecordTransaction={() => setModal('record-transaction')}
+          onLogoClick={() => {
+            setSelectedFriend(null);
+            setShowViewAllFriends(false);
+            setModal(null);
+            setEditingFriend(null);
+            setDeletingFriend(null);
+          }}
+        >
+          <AnimatePresence mode="wait">
+            <ViewAllFriends 
+              key="view-all-friends"
+              onFriendSelect={(friend) => {
+                setSelectedFriend(friend);
+                setShowViewAllFriends(false); // Hide the view all friends page when a friend is selected
+              }}
+            />
+          </AnimatePresence>
+        </Layout>
+        {/* Modals for ViewAllFriends */}
+        <DashboardModal
+          open={modal === 'add-friend'}
+          onClose={() => {
+            setModal(null);
+            setTimeout(() => refreshData(), 500);
+          }}
+          title="Add Friend"
+        >
+          <AddFriend onSuccess={() => {
+            setModal(null);
+            setTimeout(() => refreshData(), 500);
+          }} />
+        </DashboardModal>
+        <DashboardModal
+          open={modal === 'record-transaction'}
+          onClose={() => {
+            setModal(null);
+            setTimeout(() => refreshData(), 500);
+          }}
+          title="Record Transaction"
+        >
+          <RecordTransaction onSuccess={() => {
+            setModal(null);
+            setTimeout(() => refreshData(), 500);
+          }} />
+        </DashboardModal>
+        <EditFriendModal
+          open={editingFriend !== null}
+          onClose={() => {
+            setEditingFriend(null);
+            setTimeout(() => refreshData(), 500);
+          }}
+          friend={editingFriend}
+          onSave={(id, name, whatsappNumber) => {
+            editFriend(id, name, whatsappNumber);
+            setEditingFriend(null);
+            setTimeout(() => refreshData(), 500);
+          }}
+        />
+        <DeleteConfirmationModal
+          open={deletingFriend !== null}
+          onClose={() => {
+            setDeletingFriend(null);
+            setTimeout(() => refreshData(), 500);
+          }}
+          friend={deletingFriend}
+          onConfirm={() => {
+            if (deletingFriend) {
+              deleteFriend(deletingFriend.id);
+              setDeletingFriend(null);
+              setTimeout(() => refreshData(), 500);
+            }
+          }}
+        />
+      </ModalContext.Provider>
+    );
+  }
+
   // If a friend is selected, show their profile
   if (selectedFriend) {
     return (
@@ -440,13 +511,24 @@ export const AdminDashboard: React.FC = () => {
         <Layout 
           title={`${selectedFriend.name}'s Profile`}
           showAdminActions
+          onViewAllFriends={() => setShowViewAllFriends(true)}
           onAddFriend={() => setModal('add-friend')}
           onRecordTransaction={() => setModal('record-transaction')}
+          onLogoClick={() => {
+            setSelectedFriend(null);
+            setShowViewAllFriends(false);
+            setModal(null);
+            setEditingFriend(null);
+            setDeletingFriend(null);
+          }}
         >
-          <FriendProfile 
-            friend={selectedFriend} 
-            onBack={() => setSelectedFriend(null)}
-          />
+          <AnimatePresence mode="wait">
+            <FriendProfile 
+              key={`friend-profile-${selectedFriend.id}`}
+              friend={selectedFriend} 
+              onBack={() => setSelectedFriend(null)}
+            />
+          </AnimatePresence>
         </Layout>
         {/* Modals for FriendProfile */}
         <DashboardModal
@@ -513,10 +595,29 @@ export const AdminDashboard: React.FC = () => {
       <Layout
         title="Admin Dashboard"
         showAdminActions
+        onViewAllFriends={() => setShowViewAllFriends(true)}
         onAddFriend={() => setModal('add-friend')}
         onRecordTransaction={() => setModal('record-transaction')}
-      >
-      <div className="space-y-8">
+        onLogoClick={() => {
+          setSelectedFriend(null);
+          setShowViewAllFriends(false);
+          setModal(null);
+          setEditingFriend(null);
+          setDeletingFriend(null);
+        }}
+              >
+        <AnimatePresence mode="wait">
+          <motion.div 
+            key="main-dashboard"
+            className="space-y-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ 
+              duration: 0.4,
+              ease: [0.4, 0.0, 0.2, 1]
+            }}
+          >
         {/* Stats Grid - Redesigned */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {stats.map((stat, index) => (
@@ -531,8 +632,7 @@ export const AdminDashboard: React.FC = () => {
                 <div>
                   <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{stat.title}</p>
                   <p className="text-3xl font-extrabold text-gray-900 dark:text-white mt-1">
-                    <AnimatedNumber value={typeof stat.value === 'string' && stat.value.startsWith('$') ? Number(stat.value.replace(/[^\d.-]/g, '')) : stat.value} />
-                    {typeof stat.value === 'string' && stat.value.startsWith('$') ? <span className="ml-1 text-lg font-normal">$</span> : null}
+                    <AnimatedNumber value={typeof stat.value === 'string' ? stat.value : stat.value} />
                   </p>
                 </div>
                 <div className={`${stat.color} p-3 rounded-xl shadow-lg`}>
@@ -571,7 +671,9 @@ export const AdminDashboard: React.FC = () => {
             {activeTab === 'overview' && (
               <div className="space-y-6">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Friends Overview</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    {friends.length > 3 ? 'Latest Friends' : ''}
+                  </h3>
                   <div className="flex items-center gap-3">
                     {isLoading && (
                       <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
@@ -617,12 +719,11 @@ export const AdminDashboard: React.FC = () => {
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Total Borrowed</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Total Repaid</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Balance</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Tracking URL</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
                           </tr>
                         </thead>
                         <tbody className="bg-white dark:bg-secondary-800 divide-y divide-gray-200 dark:divide-secondary-700">
-                          {friends.map((friend) => (
+                          {friends.slice(0, 3).map((friend) => (
                             <tr
                               key={friend.id}
                               className="hover:bg-primary-50 dark:hover:bg-secondary-700 cursor-pointer transition-colors"
@@ -632,22 +733,19 @@ export const AdminDashboard: React.FC = () => {
                                 <FriendAvatar name={friend.name} />
                                 <div>
                                   <div className="text-sm font-medium text-gray-900 dark:text-white">{friend.name}</div>
-                                  <div className="text-sm text-gray-500 dark:text-gray-400">📱 {friend.email}</div>
+                                  <div className="text-sm text-gray-500 dark:text-gray-400"> {friend.email}</div>
                                 </div>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                                ${friend.totalBorrowed.toLocaleString()}
+                                {formatCurrency(friend.totalBorrowed)}
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                                ${friend.totalRepaid.toLocaleString()}
+                                {formatCurrency(friend.totalRepaid)}
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <span className={`text-sm font-medium ${friend.remainingBalance > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                                  ${friend.remainingBalance.toLocaleString()}
+                                  {formatCurrency(friend.remainingBalance)}
                                 </span>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <TrackingUrlDisplay trackingUrl={friend.trackingUrl} />
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
@@ -677,12 +775,25 @@ export const AdminDashboard: React.FC = () => {
                          <p className="text-sm text-gray-500 dark:text-gray-400">
                            Click on any friend to view their detailed profile and transaction history
                          </p>
+                         {friends.length > 3 && (
+                           <div className="mt-3">
+                             <p className="text-sm text-gray-500 dark:text-gray-400">
+                               Showing latest 3 of {friends.length} friends
+                             </p>
+                             <button
+                               onClick={() => setShowViewAllFriends(true)}
+                               className="mt-2 text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-medium"
+                             >
+                               View All Friends →
+                             </button>
+                           </div>
+                         )}
                        </div>
                      </div>
 
                     {/* Mobile Card View */}
                     <div className="md:hidden space-y-4">
-                      {friends.map((friend) => (
+                      {friends.slice(0, 3).map((friend) => (
                         <motion.div
                           key={friend.id}
                           initial={{ opacity: 0, y: 20 }}
@@ -723,51 +834,24 @@ export const AdminDashboard: React.FC = () => {
                             <div className="text-center">
                               <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Borrowed</p>
                               <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                                ${friend.totalBorrowed.toLocaleString()}
+                                {formatCurrency(friend.totalBorrowed)}
                               </p>
                             </div>
                             <div className="text-center">
                               <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Repaid</p>
                               <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                                ${friend.totalRepaid.toLocaleString()}
+                                {formatCurrency(friend.totalRepaid)}
                               </p>
                             </div>
                             <div className="text-center">
                               <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Balance</p>
                               <p className={`text-sm font-semibold ${friend.remainingBalance > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                                ${friend.remainingBalance.toLocaleString()}
+                                {formatCurrency(friend.remainingBalance)}
                               </p>
                             </div>
                           </div>
 
-                          {/* Tracking URL */}
-                          <div className="border-t border-gray-100 dark:border-secondary-700 pt-3">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2">
-                                <Link className="h-4 w-4 text-gray-400" />
-                                <span className="text-xs text-gray-500 dark:text-gray-400">Tracking URL</span>
-                              </div>
-                              {friend.trackingUrl && (
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    navigator.clipboard.writeText(`${getBaseUrl()}/track/${friend.trackingUrl}`);
-                                  }}
-                                  className="p-1 text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
-                                  title="Copy tracking URL"
-                                >
-                                  <Copy className="h-3 w-3" />
-                                </button>
-                              )}
-                            </div>
-                            {friend.trackingUrl ? (
-                              <p className="text-xs text-gray-600 dark:text-gray-400 font-mono mt-1 truncate">
-                                {friend.trackingUrl.slice(0, 12)}...
-                              </p>
-                            ) : (
-                              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">No tracking URL</p>
-                            )}
-                          </div>
+
 
                           {/* Tap to view hint */}
                           <div className="mt-3 pt-2 border-t border-gray-100 dark:border-secondary-700">
@@ -777,6 +861,19 @@ export const AdminDashboard: React.FC = () => {
                           </div>
                         </motion.div>
                       ))}
+                      {friends.length > 3 && (
+                        <div className="text-center py-4">
+                          <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
+                            Showing latest 3 of {friends.length} friends
+                          </p>
+                          <button
+                            onClick={() => setShowViewAllFriends(true)}
+                            className="text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-medium"
+                          >
+                            View All Friends →
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </>
                 )}
@@ -819,7 +916,8 @@ export const AdminDashboard: React.FC = () => {
             <Plus className="h-6 w-6" />
           </motion.button>
         </div>
-      </div>
+                </motion.div>
+        </AnimatePresence>
       {/* Dashboard Modals - move outside main content to cover header */}
       <DashboardModal
         open={modal === 'add-friend'}
@@ -882,6 +980,13 @@ export const AdminDashboard: React.FC = () => {
             setTimeout(() => refreshData(), 500);
           }
         }}
+      />
+
+      {/* Chatbot Component */}
+      <Chatbot 
+        showFloatingButton={true}
+        position="bottom-left"
+        customMessage="Need help with admin dashboard? I'm here to assist you!"
       />
     </Layout>
     </ModalContext.Provider>

@@ -7,6 +7,7 @@ CREATE TABLE users (
     whatsapp_number VARCHAR(20) NOT NULL,
     profile_photo_url TEXT,
     role VARCHAR(20) DEFAULT 'admin',
+    preferred_currency VARCHAR(3) DEFAULT 'LKR',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -20,6 +21,7 @@ CREATE TABLE friends (
     is_registered BOOLEAN DEFAULT FALSE,
     user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
     tracking_url VARCHAR(255) UNIQUE,
+    tracking_code VARCHAR(4) NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     UNIQUE(whatsapp_number, admin_id)

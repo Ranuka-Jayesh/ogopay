@@ -1,8 +1,8 @@
-import React, { ReactNode } from 'react';
+import React, { ReactNode, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
-import { LogOut, User, Moon, Sun, Users, Plus, Settings, Menu, X } from 'lucide-react';
+import { LogOut, User, Moon, Sun, Users, Plus, Settings, Menu, X, AlertTriangle } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 
 interface LayoutProps {
@@ -11,6 +11,8 @@ interface LayoutProps {
   showAdminActions?: boolean;
   onAddFriend?: () => void;
   onRecordTransaction?: () => void;
+  onViewAllFriends?: () => void;
+  onLogoClick?: () => void;
 }
 
 // Helper for avatar (profile photo or initials)
@@ -26,12 +28,15 @@ const ProfileAvatar = ({ name, photo }: { name?: string; photo?: string }) => {
   );
 };
 
-export const Layout: React.FC<LayoutProps> = ({ children, title, showAdminActions, onAddFriend, onRecordTransaction }) => {
+export const Layout: React.FC<LayoutProps> = ({ children, title, showAdminActions, onAddFriend, onRecordTransaction, onViewAllFriends, onLogoClick }) => {
   const { user, logout } = useAuth();
   const { isDark, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
   const [sidebarOpen, setSidebarOpen] = React.useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [logoutProgress, setLogoutProgress] = useState(0);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const dropdownRef = React.useRef<HTMLDivElement>(null);
 
   // Close dropdown on outside click
@@ -59,14 +64,33 @@ export const Layout: React.FC<LayoutProps> = ({ children, title, showAdminAction
   const handleSettingsClick = () => {
     setDropdownOpen(false);
     setSidebarOpen(false);
-    // TODO: Navigate to settings page when created
-    console.log('Settings clicked');
+    navigate('/profile');
   };
 
   const handleLogout = () => {
     setDropdownOpen(false);
     setSidebarOpen(false);
-    logout();
+    setShowLogoutModal(true);
+  };
+
+  const confirmLogout = () => {
+    setIsLoggingOut(true);
+    setLogoutProgress(0);
+    
+    // Start progress animation
+    const progressInterval = setInterval(() => {
+      setLogoutProgress(prev => {
+        if (prev >= 100) {
+          clearInterval(progressInterval);
+          // Perform actual logout after progress completes
+          setTimeout(() => {
+            logout();
+          }, 500);
+          return 100;
+        }
+        return prev + 2;
+      });
+    }, 50); // 2.5 seconds total (50ms * 50 steps)
   };
 
   return (
@@ -75,7 +99,13 @@ export const Layout: React.FC<LayoutProps> = ({ children, title, showAdminAction
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
           {/* Logo */}
           <button
-            onClick={() => navigate('/')}
+            onClick={() => {
+              if (onLogoClick) {
+                onLogoClick();
+              } else {
+                navigate('/');
+              }
+            }}
             className="flex items-center font-extrabold text-xl text-primary-700 dark:text-primary-300 hover:text-primary-800 dark:hover:text-primary-200 transition-colors cursor-pointer"
           >
             Ogo Pay
@@ -85,8 +115,15 @@ export const Layout: React.FC<LayoutProps> = ({ children, title, showAdminAction
             {showAdminActions && (
               <>
                 <button
-                  onClick={onAddFriend}
+                  onClick={onViewAllFriends}
                   className="ml-4 flex items-center gap-1 text-sm text-gray-700 dark:text-gray-200 hover:text-primary-600 dark:hover:text-primary-400 bg-transparent p-0 font-normal shadow-none"
+                  style={{ background: 'none', border: 'none' }}
+                >
+                  <Users className="h-4 w-4 mr-1" /> View All Friends
+                </button>
+                <button
+                  onClick={onAddFriend}
+                  className="ml-3 flex items-center gap-1 text-sm text-gray-700 dark:text-gray-200 hover:text-primary-600 dark:hover:text-primary-400 bg-transparent p-0 font-normal shadow-none"
                   style={{ background: 'none', border: 'none' }}
                 >
                   <Users className="h-4 w-4 mr-1" /> Add Friend
@@ -188,6 +225,12 @@ export const Layout: React.FC<LayoutProps> = ({ children, title, showAdminAction
                 <nav className="flex flex-col gap-6 text-lg font-semibold flex-1">
                   {showAdminActions && (
                     <>
+                      <button 
+                        onClick={() => { setSidebarOpen(false); onViewAllFriends?.(); }} 
+                        className="flex items-center gap-2 text-gray-200 hover:text-primary-400 text-base"
+                      >
+                        <Users className="h-5 w-5" /> View All Friends
+                      </button>
                       <button onClick={() => { setSidebarOpen(false); onAddFriend?.(); }} className="flex items-center gap-2 text-gray-200 hover:text-primary-400 text-base">
                         <Users className="h-5 w-5" /> Add Friend
                       </button>
@@ -226,6 +269,95 @@ export const Layout: React.FC<LayoutProps> = ({ children, title, showAdminAction
         </div>
         {children}
       </main>
+
+      {/* Logout Confirmation Modal */}
+      <AnimatePresence>
+        {showLogoutModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md"
+            onClick={() => !isLoggingOut && setShowLogoutModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+              className="bg-white dark:bg-secondary-800 rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 relative"
+              onClick={e => e.stopPropagation()}
+            >
+              {!isLoggingOut ? (
+                <>
+                  {/* Confirmation State */}
+                  <div className="text-center">
+                    <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
+                      <AlertTriangle className="h-8 w-8 text-red-600 dark:text-red-400" />
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+                      Confirm Logout
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-300 mb-8">
+                      Are you sure you want to logout? You'll need to sign in again to access your account.
+                    </p>
+                    <div className="flex gap-3">
+                      <button
+                        onClick={() => setShowLogoutModal(false)}
+                        className="flex-1 px-6 py-3 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-secondary-600 rounded-xl hover:bg-gray-50 dark:hover:bg-secondary-700 transition-all duration-200 font-medium"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={confirmLogout}
+                        className="flex-1 px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl transition-all duration-200 font-medium shadow-lg hover:shadow-xl"
+                      >
+                        Logout
+                      </button>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  {/* Progress State */}
+                  <div className="text-center">
+                    <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
+                      <LogOut className="h-8 w-8 text-green-600 dark:text-green-400" />
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+                      Good bye!
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-300 mb-6">
+                      Logging you out...
+                    </p>
+                    
+                    {/* Progress Bar */}
+                    <div className="w-full bg-gray-200 dark:bg-secondary-700 rounded-full h-3 mb-4 overflow-hidden">
+                      <motion.div
+                        className="h-full rounded-full transition-all duration-300"
+                        style={{
+                          width: `${logoutProgress}%`,
+                          background: `linear-gradient(90deg, 
+                            ${logoutProgress <= 50 ? '#10b981' : '#f59e0b'} 0%, 
+                            ${logoutProgress <= 50 ? '#059669' : '#d97706'} 50%, 
+                            ${logoutProgress <= 50 ? '#047857' : '#b45309'} 100%)`
+                        }}
+                        initial={{ width: 0 }}
+                        animate={{ width: `${logoutProgress}%` }}
+                        transition={{ duration: 0.3, ease: "easeOut" }}
+                      />
+                    </div>
+                    
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      {logoutProgress}% complete
+                    </p>
+                  </div>
+                </>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
