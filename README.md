@@ -9,12 +9,6 @@
 
   <!-- Badges -->
   <p>
-    <a href="YOUR_LIVE_DEMO_URL" target="_blank">
-      <img alt="Live Demo" src="https://img.shields.io/badge/Live%20Demo-Open-1D9BF0?logo=vercel">
-    </a>
-    <a href="YOUR_VIDEO_URL" target="_blank">
-      <img alt="Watch Demo" src="https://img.shields.io/badge/Watch-Demo%20Video-FF0000?logo=youtube">
-    </a>
     <a href="LICENSE">
       <img alt="License" src="https://img.shields.io/badge/License-MIT-2ea44f.svg">
     </a>
@@ -31,12 +25,11 @@
 
   <!-- Optional Banner -->
   <p>
-    <img src="YOUR_BANNER_IMAGE" alt="OgoPay Banner" width="940">
+    <img src="public/Neutral Beige Screen Creator Facebook Cover.png" alt="OgoPay Banner" width="940">
   </p>
 
   <!-- Quick Nav -->
   <p>
-    <a href="#demo"><b>🎥 Demo</b></a> •
     <a href="#overview"><b>🚀 Overview</b></a> •
     <a href="#features"><b>✨ Features</b></a> •
     <a href="#tech"><b>🏗️ Tech</b></a> •
@@ -49,17 +42,6 @@
 </div>
 
 <hr>
-
-<!-- Demo -->
-<h2 id="demo">🎥 Demo</h2>
-
-<!-- Clickable YouTube/GitHub Releases thumbnail -->
-<p>
-  <a href="YOUR_VIDEO_URL" target="_blank">
-    <img src="YOUR_VIDEO_THUMBNAIL" alt="Watch the OgoPay Demo" width="940">
-  </a>
-</p>
-
 <!-- Optional: Inline MP4 (GitHub supports) -->
 <details>
   <summary><b>▶️ Play Inline (MP4)</b> — fallback/alternative</summary>
@@ -159,23 +141,6 @@
   <summary><b>🧩 Architecture Diagram</b> (optional)</summary>
   <p><img src="YOUR_ARCHITECTURE_IMAGE" alt="System Architecture" width="940"></p>
 </details>
-
-<hr>
-
-<!-- Screens -->
-<h2 id="screens">📸 Screenshots</h2>
-<table>
-  <tr>
-    <td align="center"><b>Admin Dashboard</b></td>
-    <td align="center"><b>Friend Dashboard</b></td>
-    <td align="center"><b>Analytics</b></td>
-  </tr>
-  <tr>
-    <td><img src="YOUR_SCREENSHOT_LINK1" alt="Admin Dashboard" width="300"></td>
-    <td><img src="YOUR_SCREENSHOT_LINK2" alt="Friend Dashboard" width="300"></td>
-    <td><img src="YOUR_SCREENSHOT_LINK3" alt="Analytics" width="300"></td>
-  </tr>
-</table>
 
 <hr>
 
@@ -281,11 +246,5 @@ npm run preview</code></pre>
 <!-- Author -->
 <h2 id="author">👨‍💻 Author</h2>
 <p>
-  Built with ❤️ by <a href="https://github.com/YOUR_USERNAME" target="_blank">Ogo Technology</a> • Sri Lanka 🇱🇰
+  Built with ❤️ by <a href="https://ogotechnology.net" target="_blank">Ogo Technology</a> • Sri Lanka 🇱🇰
 </p>
-
-<!-- Implementation Notes:
-- Store screenshots, banner, and demo MP4 under /assets and update src paths.
-- Use YouTube for YOUR_VIDEO_URL or GitHub Releases asset.
-- Add _redirects (/* /index.html 200) for Netlify SPA routing if applicable.
--->
